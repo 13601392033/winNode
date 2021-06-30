@@ -1,13 +1,26 @@
 let koa = require("koa");
-let router = require("koa-router")();
-let UserModel = require("./db/user.js");
 let app = new koa();
 const bodyParser = require('koa-bodyparser')
-const {createToken, verifyToken} = require('./token/jwt');
+const {verifyToken} = require('./token/jwt');
 const cors = require('koa2-cors');
+let session = require("koa-session")
+const registerRouter  = require('./router/index.js')
+
 //配置 bodyParsey中间件
 app.use(bodyParser())
 app.use(cors());
+app.keys = ['dasdasdsdasd'];
+const CONFIG = {
+    key: 'koa:sess',   //cookie key (default is koa:sess)
+    maxAge: 86400000,  // cookie的过期时间 maxAge in ms (default is 1 days)
+    overwrite: true,  //是否可以overwrite    (默认default true)
+    httpOnly: true, //cookie是否只有服务器端可以访问 httpOnly or not (default true)
+    signed: true,   //签名默认true
+    rolling: false,  //在每次请求时强行设置cookie，这将重置cookie过期时间（默认：false）
+    renew: false,  //(boolean) renew session when session is nearly expired,
+};
+app.use(session(CONFIG, app));
+app.use(registerRouter())
 
 app.use(async(ctx, next)=>{
     let name = ctx.request.url;
@@ -18,35 +31,13 @@ app.use(async(ctx, next)=>{
         verifyToken(token).then(async res=>{
             await next()
         }).catch(e=>{
-            ctx.body = "报错，token不正确";
+            ctx.body = {
+                code:"303",//token失效
+                msg:"报错，token不正确",
+            };
         });
     }
 });
 
-router.post("/login", async (ctx)=>{
-    let bodyData = ctx.request.body;
-    let resData = "";
-    await UserModel.find({username: bodyData.userName, password: bodyData.password},(err, doc)=>{
-        if(err){
-            console.log(err)
-            return false;
-        }
-        resData = doc;
-    })  
-    let token = "";
-    if(resData.length >= 1){
-        token = createToken({id:resData[0]._id});
-    }
-    ctx.body = {
-        code : 200,
-        data : resData,
-        token : token,
-    }
-})
-
-router.get("/go", async (ctx)=>{
-    ctx.body = "dasdasd"
-})
-
-app.use(router.routes()).use(router.allowedMethods());
+//app.use(router.routes()).use(router.allowedMethods());
 app.listen(9011);

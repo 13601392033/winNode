@@ -5,10 +5,9 @@ const secret = '113Bmongodasd12asddasdasxZcxqwedqwdasdASjsdalkfnxcvmas'
 //生成token
 //info也就是payload是需要存入token的信息
 exports.createToken = function(info) {
-    console.log(info)
 	let token = jwt.sign(info, secret, {
         //Token有效时间 单位s
-		expiresIn:10
+		expiresIn:60 * 60 * 3
 	})
 	return token
 }
