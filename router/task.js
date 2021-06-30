@@ -22,20 +22,21 @@ router.post('/addTask', async (ctx)=>{
         userId: userId
     }
     let resBody = {};
-    await TaskModel.insertMany(obj, (err, res)=>{
-        if(err){
-            resBody = {
-                code: 500,
-                msg: "添加失败",
-                err
-            }
-        }else{
-            resBody = {
-                data: 200,
-                msg: "添加成功！"
-            }
+    let Task = await new TaskModel(obj);
+
+    try {
+        let a = await Task.save();    
+        resBody = {
+            code: 200,
+            msg: "添加成功！"
         }
-    });
+    } catch (error) {
+        resBody = {
+            code: 400,
+            msg: "添加失败！"
+        }
+    }
+    
     
     ctx.body = resBody
 })

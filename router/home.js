@@ -48,7 +48,6 @@ router.post("/init", async (ctx)=>{
             return false;
         }
         resData = doc
-        console.log(doc)
     })
     ctx.body = {
         code:200,

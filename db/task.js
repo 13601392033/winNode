@@ -8,5 +8,5 @@ let taskSchema = mongoose.Schema({
     date: Number,
 })
 
-let TaskModel = mongoose.model("task", taskSchema, "task");
+let TaskModel = mongoose.model(null, taskSchema, "task");
 module.exports = TaskModel;
