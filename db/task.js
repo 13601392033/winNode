@@ -1,5 +1,6 @@
 var mongoose = require("./db.js");
 let taskSchema = mongoose.Schema({
+    id: String, // 唯一标识
     title: String,
     state: Number, // 1 为未完成 2 为已完成
     content: String,

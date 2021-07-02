@@ -1,8 +1,10 @@
-const Router = require('koa-router')
+let Router = require('koa-router')
 let UserModel = require("../db/user.js");
-const router = new Router()
-const {createToken} = require('../token/jwt');
+let router = new Router()
+let {createToken} = require('../token/jwt');
 let TaskModel = require("../db/task");
+let RecordkModel = require("../db/record");
+
 router.post("/login", async (ctx)=>{
     let bodyData = ctx.request.body;
     let resData = "";
@@ -34,24 +36,28 @@ router.post("/loginOut", async(ctx)=>{
 
 router.post("/init", async (ctx)=>{
     let userId = ctx.session.id;
-    let resData = undefined;
-    await TaskModel.aggregate([{
+    let taskList = await TaskModel.aggregate([{
         $limit:6,
     },
     {
         $match:{
             userId :userId
         }
-    }],(err, doc)=>{
-        if(err){
-            console.log(err)
-            return false;
+    }])
+    let recordList = await RecordkModel.aggregate([{
+        $limit:5,
+    },
+    {
+        $match:{
+            userId :userId
         }
-        resData = doc
-    })
+    }])
     ctx.body = {
         code:200,
-        data: resData,
+        data: {
+            taskList,
+            recordList,
+        },
     }
 });
 

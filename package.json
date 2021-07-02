@@ -20,6 +20,7 @@
     "koa-session": "^6.2.0",
     "koa2-cors": "^2.0.6",
     "mongodb": "^3.6.9",
-    "mongoose": "^5.12.15"
+    "mongoose": "^5.12.15",
+    "node-uuid": "^1.4.8"
   }
 }
