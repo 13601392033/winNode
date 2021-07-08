@@ -12,7 +12,7 @@ app.use(cors());
 app.keys = ['dasdasdsdasd'];
 const CONFIG = {
     key: 'koa:sess',   //cookie key (default is koa:sess)
-    maxAge: 86400000,  // cookie的过期时间 maxAge in ms (default is 1 days)
+    maxAge: 1000 * 60 * 60 * 12,  // cookie的过期时间 maxAge in ms (default is 1 days)
     overwrite: true,  //是否可以overwrite    (默认default true)
     httpOnly: true, //cookie是否只有服务器端可以访问 httpOnly or not (default true)
     signed: true,   //签名默认true
@@ -20,17 +20,24 @@ const CONFIG = {
     renew: false,  //(boolean) renew session when session is nearly expired,
 };
 app.use(session(CONFIG, app));
-app.use(registerRouter())
-
 app.use(async(ctx, next)=>{
     let name = ctx.request.url;
     if(name == "/login"){
         await next()
     }else{
         let token = ctx.request.header.token;
-        verifyToken(token).then(async res=>{
-            await next()
+        await verifyToken(token).then(async res=>{
+            let userId = ctx.session.id;
+            if(!userId){
+                ctx.body = {
+                    code:"304",//session失效
+                    msg:"session失效，请重新登录",
+                };
+            }else{
+                await next()
+            }
         }).catch(e=>{
+            console.log(e)
             ctx.body = {
                 code:"303",//token失效
                 msg:"报错，token不正确",
@@ -38,6 +45,6 @@ app.use(async(ctx, next)=>{
         });
     }
 });
-
+app.use(registerRouter())
 //app.use(router.routes()).use(router.allowedMethods());
 app.listen(9011);

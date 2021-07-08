@@ -1,37 +1,52 @@
 let uuid = require('node-uuid');
 let Router = require('koa-router')
-let RecordkModel = require("../db/record");
+let RecordModel = require("../db/record");
 const router = new Router()
 
 router.prefix('/record')
 
 router.get('/queryList',(ctx)=>{
-    RecordkModel.remove({},(err,ret)=>{
+    RecordModel.remove({},(err,ret)=>{
         console.log(ret)
     })
     ctx.body = "hello C module router"
 })
 
-router.post("/refreshRecordList", async (ctx)=>{
+router.post("/queryRecordList", async (ctx)=>{
     let userId = ctx.session.id;
-    let a = await RecordkModel.aggregate([{
-        $limit:5,
-    },
-    {
-        $match:{
-            userId :userId
-        }
-    }])
-    ctx.body = {
-        code:200,
-        data: a,
+    let query = ctx.request.body;
+    let match = {
+        userId: userId,
     }
-});
+    if(query.type != 0){//不为全部的情况
+        match.type = query.type;
+    }
+    let resData = await RecordModel.aggregate([
+        {
+            $sort: {date: -1}
+        },
+        {
+            $match:match
+        },
+        {
+            $skip: (query.pageNo -1) * query.pageSize,
+        },
+        {
+            $limit: query.pageSize || 20
+        },
+    ])
+    let total = await RecordModel.find(match).count()
+    ctx.body = {
+        code: 200,
+        data: resData,
+        total: total,
+    }
+})
 
 router.post('/editRecordById', async (ctx)=>{
     let data = ctx.request.body;
     try {
-        await RecordkModel.updateOne({id : data.id}, {
+        await RecordModel.updateOne({id : data.id}, {
             title : data.title,
             content : data.content,
             type : data.type,
@@ -50,7 +65,7 @@ router.post('/editRecordById', async (ctx)=>{
 
 router.post("/delRecordById", async (ctx)=>{
     let data = ctx.request.body;
-    await RecordkModel.remove({id : data.id});
+    await RecordModel.deleteOne({id : data.id});
     ctx.body = {
         code : 200,
         msg : "记录删除成功！"
@@ -69,7 +84,7 @@ router.post('/addRecord', async (ctx)=>{
         date: new Date().getTime(),
     }
     let resBody = {};
-    let Record = await new RecordkModel(obj);
+    let Record = await new RecordModel(obj);
 
     try {
         let a = await Record.save();    

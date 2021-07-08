@@ -12,6 +12,79 @@ router.get('/queryList',(ctx)=>{
     ctx.body = "hello C module router"
 })
 
+//分页的首次查询
+router.post("/queryAllTasks", async(ctx)=>{
+    let data = ctx.request.body;
+    let userId = ctx.session.id;
+    let one = await queryTasksByType(1, data.pageNo, data.pageSize, {"date":-1}, userId)
+    let two = await queryTasksByType(2, data.pageNo, data.pageSize, {"date":-1}, userId)
+    let three = await queryTasksByType(3, data.pageNo, data.pageSize, {"date":-1}, userId)
+    let all = one.concat(two, three);
+    let total = await TaskModel.aggregate([
+        {
+            $match:{userId :userId}
+        },
+        {$group : {_id : "$type", total : {$sum : 1}}},
+        {$sort:{type:1}}
+    ])
+    ctx.body = {
+        code : 200,
+        data : all,
+        total: total,
+    }
+})
+
+async function queryTasksByType(type, pageNo, pageSize, sort, userId){
+    return await TaskModel.aggregate([
+        {
+            $sort:sort
+        },
+        {
+            $match:{
+                userId: userId,
+                type: type
+            }
+        },
+        {
+            $skip: (pageNo -1) * pageSize,
+        },
+        {
+            $limit: pageSize || 20
+        },
+    ])
+}
+
+//按照类型分页查询
+router.post("/queryTasksByType", async(ctx)=>{
+    let data = ctx.request.body;
+    let userId = ctx.session.id;
+    let resData = await TaskModel.aggregate([
+        {
+            $match:{
+                userId :userId,
+                type : data.type,
+            }
+        },
+        {
+            $sort:{"date":-1}
+        },
+        {
+            $skip: (data.pageNo -1) * data.pageSize,
+        },
+        {
+            $limit: data.pageSize || 20
+        },
+    ])
+    let total = (await TaskModel.aggregate([
+        {$match:{userId :userId, type : data.type,}},
+    ])).length;
+    ctx.body = {
+        code : 200,
+        data : resData,
+        total: total,
+    }
+})
+
 router.post("/refreshTaskList", async (ctx)=>{
     let userId = ctx.session.id;
     let a = await TaskModel.aggregate([{

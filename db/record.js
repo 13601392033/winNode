@@ -4,7 +4,7 @@ let recordSchema = mongoose.Schema({
     title: String,
     content: String,
     userId: String,
-    type: Number, //1==学习 2==工作 3==生活 4==感悟
+    type: Number, //0==全部 1==学习 2==工作 3==生活 4==感悟
     date: Number,
 })
 
