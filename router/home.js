@@ -4,6 +4,7 @@ let router = new Router()
 let {createToken} = require('../token/jwt');
 let TaskModel = require("../db/task");
 let RecordkModel = require("../db/record");
+let HabitModel = require("../db/habit");
 
 router.post("/login", async (ctx)=>{
     let bodyData = ctx.request.body;
@@ -52,11 +53,25 @@ router.post("/init", async (ctx)=>{
             userId :userId
         }
     }])
+    let habitList = await HabitModel.aggregate([
+        {
+            $sort: {date: -1}
+        },
+        {
+            $match:{
+                userId: userId,
+            }
+        },
+        {
+            $limit: 6
+        },
+    ])
     ctx.body = {
         code:200,
         data: {
             taskList,
             recordList,
+            habitList,
         },
     }
 });
