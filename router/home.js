@@ -37,34 +37,76 @@ router.post("/loginOut", async(ctx)=>{
 
 router.post("/init", async (ctx)=>{
     let userId = ctx.session.id;
-    let taskList = await TaskModel.aggregate([{
-        $limit:6,
-    },
-    {
-        $match:{
-            userId :userId
-        }
+    let taskList = await TaskModel.aggregate([
+        {
+            $sort: {date: -1}
+        },
+        {
+            $limit:6,
+        },
+        {
+            $match:{
+                userId :userId
+            }
     }])
-    let recordList = await RecordkModel.aggregate([{
-        $limit:5,
-    },
-    {
-        $match:{
-            userId :userId
+    let recordList = await RecordkModel.aggregate([
+        {
+            $sort: {date: -1}
+        },
+        {
+            $limit:5,
+        },
+        {
+            $match:{
+                userId :userId
         }
     }])
     let habitList = await HabitModel.aggregate([
         {
             $sort: {date: -1}
         },
-        {
-            $match:{
-                userId: userId,
-            }
-        },
+        
         {
             $limit: 6
         },
+        {
+            $lookup:{ // 左连接
+                from: "habitLogs", // 关联到order表
+                localField: "id", // user 表关联的字段
+                foreignField: "habitId", // order 表关联的字段
+                as: "logs"
+            },
+        },
+        {
+            $match:{
+                userId: userId,
+                
+            }
+        },
+        {
+            $project:{
+                name: "$name",
+                id: "$id",
+                date: "$date",
+                logo: "$logo",
+                backColor: "$backColor",
+                logoColor: "$logoColor",
+                logoType: "$logoType",
+                logs:{
+                    $filter:{
+                        input:"$logs",
+                        as : "item",
+                        cond:{
+                            $and:[
+                                {$eq:["$$item.dateTime", "2021-07-18"],},
+                                {$max:"$$item.date"}
+                            ]
+                            
+                        }
+                    }
+                }
+            }
+        }
     ])
     ctx.body = {
         code:200,

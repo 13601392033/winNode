@@ -91,6 +91,9 @@ router.post("/refreshTaskList", async (ctx)=>{
         $limit:6,
     },
     {
+        $sort: {date: -1}
+    },
+    {
         $match:{
             userId :userId
         }

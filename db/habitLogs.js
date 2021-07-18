@@ -4,7 +4,8 @@ let habitLogsSchema = mongoose.Schema({
     habitId: String, //习惯id
     type: Number, //0 == 取消完成 1 == 已完成
     date: Number,
-    userId: String
+    userId: String,
+    dateTime:String
 })
 
 let HabitLogsModel = mongoose.model("habitLogs", habitLogsSchema, "habitLogs");

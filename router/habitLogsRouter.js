@@ -1,6 +1,7 @@
 let uuid = require('node-uuid');
 let Router = require('koa-router')
 let HabitLogsModel = require("../db/habitLogs");
+let moment = require("moment");
 const router = new Router()
 
 router.prefix('/habitLogs')
@@ -14,6 +15,7 @@ router.post("/addHabitLogs", async (ctx)=>{
         type: data.type,
         date: new Date().getTime(),
         habitId: data.habitId,
+        dateTime: moment(new Date()).format("YYYY-MM-DD")
     }
     let logs = await new HabitLogsModel(obj);
     

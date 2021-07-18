@@ -43,6 +43,27 @@ router.post("/queryRecordList", async (ctx)=>{
     }
 })
 
+router.post("/refreshRecordList", async (ctx)=>{
+    let userId = ctx.session.id;
+    let a = await RecordModel.aggregate([
+        {
+            $sort: {date: -1}
+        },
+        {
+            $limit:5,
+        },
+        {
+            $match:{
+                userId :userId
+            }
+        }
+    ])
+    ctx.body = {
+        code:200,
+        data: a,
+    }
+});
+
 router.post('/editRecordById', async (ctx)=>{
     let data = ctx.request.body;
     try {
