@@ -5,6 +5,7 @@ let {createToken} = require('../token/jwt');
 let TaskModel = require("../db/task");
 let RecordkModel = require("../db/record");
 let HabitModel = require("../db/habit");
+let moment = require("moment");
 
 router.post("/login", async (ctx)=>{
     let bodyData = ctx.request.body;
@@ -65,10 +66,7 @@ router.post("/init", async (ctx)=>{
         {
             $sort: {date: -1}
         },
-        
-        {
-            $limit: 6
-        },
+
         {
             $lookup:{ // 左连接
                 from: "habitLogs", // 关联到order表
@@ -80,17 +78,19 @@ router.post("/init", async (ctx)=>{
         {
             $match:{
                 userId: userId,
-                
+                isDel :{
+                    $ne: 1
+                }
             }
         },
         {
             $project:{
                 name: "$name",
                 id: "$id",
-                date: "$date",
+                date: "$date",  
                 logo: "$logo",
                 backColor: "$backColor",
-                logoColor: "$logoColor",
+                logoColor: "$logoColor",    
                 logoType: "$logoType",
                 logs:{
                     $filter:{
@@ -98,15 +98,14 @@ router.post("/init", async (ctx)=>{
                         as : "item",
                         cond:{
                             $and:[
-                                {$eq:["$$item.dateTime", "2021-07-18"],},
-                                {$max:"$$item.date"}
+                                {$eq:["$$item.dateTime", moment(new Date()).format("YYYY-MM-DD")],},
                             ]
                             
                         }
                     }
                 }
             }
-        }
+        },
     ])
     ctx.body = {
         code:200,

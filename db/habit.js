@@ -6,6 +6,7 @@ let habitSchema = mongoose.Schema({
     remark: String, // 备注
     userId: String,
     logo: String,
+    isDel: Number, //1 == 已删除
     backColor: String, //背景色
     logoColor: String, //logo颜色
     logoType: Number, // 0 == 文字 1 == 图标
