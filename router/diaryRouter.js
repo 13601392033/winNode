@@ -91,7 +91,6 @@ router.post('/addDiary', async (ctx)=>{
         title: data.title,
         id: uuid.v1(),
         content: data.content,
-        type: data.type,
         userId: userId,
         date: date.getTime(),
         dateTime: moment(date).format("YYYY-MM-DD"),
