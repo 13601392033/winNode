@@ -34,6 +34,59 @@ router.post("/queryDiaryList", async (ctx)=>{
     }
 })
 
+router.post("/queryDiaryById", async(ctx)=>{
+    let data = ctx.request.body;
+    let a = await DiaryModel.aggregate([
+        {
+            $match:{
+                id: data.id,
+            }
+        }
+    ]);
+    ctx.body = {
+        code: 200,
+        data: a,
+    }
+})
+
+router.post("/queryNearById", async(ctx)=>{
+    let data = ctx.request.body;
+    let match = {};
+    let val = 1;
+    if(data.type == 0){ // 上一篇
+        match = {
+            incId: {
+                $lt: data.incId
+            }
+        }
+        val = -1;
+    }else if(data.type == 1){ // 下一篇
+        match = {
+            incId: { 
+                $gt: data.incId
+            }
+        }
+        console.log(match)
+    }
+    let a = await DiaryModel.aggregate([
+        {
+            $sort:{
+                incId: val,
+            }
+        },
+        {
+            $match:match
+        },
+        {
+            $limit:1
+        }
+    ]);
+    ctx.body = {
+        code: 200,
+        data: a,
+    }
+})
+
 router.post("/refreshRecordList", async (ctx)=>{
     let userId = ctx.session.id;
     let a = await DiaryModel.aggregate([
@@ -87,9 +140,17 @@ router.post('/addDiary', async (ctx)=>{
     let data = ctx.request.body;
     let userId = ctx.session.id;
     let date = new Date();
+    let incId = 1;
+    await DiaryModel.find().sort({incId: -1}).limit(1).then(res=>{
+        console.log(res)
+        if(res[0]){
+            incId = res[0].incId+1
+        }
+    });
     let obj = {
         title: data.title,
         id: uuid.v1(),
+        incId: incId,
         content: data.content,
         userId: userId,
         date: date.getTime(),

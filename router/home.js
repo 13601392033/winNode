@@ -9,19 +9,13 @@ let moment = require("moment");
 
 router.post("/login", async (ctx)=>{
     let bodyData = ctx.request.body;
-    let resData = "";
-    await UserModel.find({username: bodyData.userName, password: bodyData.password},(err, doc)=>{
-        if(err){
-            console.log(err)
-            return false;
-        }
-        resData = doc;
-    })
+    let resData = await UserModel.find({username: bodyData.userName, password: bodyData.password});
     let token = "";
     if(resData.length >= 1){
         token = createToken({id:resData[0]._id});
         ctx.session.id = resData[0]._id;
     }
+    console.log(resData)
     ctx.body = {
         code : 200,
         data : resData,

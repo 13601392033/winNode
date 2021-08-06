@@ -4,6 +4,7 @@ let diarySchema = mongoose.Schema({
     title: String,
     content: String,
     userId: String,
+    incId: Number,
     date: Number,
     dateTime: String,//年月日
 })

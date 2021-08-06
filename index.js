@@ -5,8 +5,10 @@ const {verifyToken} = require('./token/jwt');
 const cors = require('koa2-cors');
 let session = require("koa-session")
 const registerRouter  = require('./router/index.js')
+let static = require("koa-static");
 
 //配置 bodyParsey中间件
+app.use(static("./"));
 app.use(bodyParser())
 app.use(cors());
 app.keys = ['dasdasdsdasd'];
@@ -22,6 +24,7 @@ const CONFIG = {
 app.use(session(CONFIG, app));
 app.use(async(ctx, next)=>{
     let name = ctx.request.url;
+    console.log(name)
     if(name == "/login"){
         await next()
     }else{

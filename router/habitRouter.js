@@ -2,6 +2,7 @@ let uuid = require('node-uuid');
 let Router = require('koa-router')
 let HabitModel = require("../db/habit");
 let {getCurBestDays, getBestDays} = require("../common/utils");
+let moment = require("moment");
 const router = new Router()
 
 router.prefix('/habit')
