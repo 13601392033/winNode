@@ -80,7 +80,19 @@ router.post("/queryHabitList", async (ctx)=>{
                 }
             }
         },
+        {
+            $lookup:{ // 左连接
+                from: "habitLogs", // 关联到order表
+                localField: "id", // user 表关联的字段
+                foreignField: "habitId", // order 表关联的字段
+                as: "logs"
+            },
+        },
     ])
+    resData.forEach(item=>{
+        item.days = item.logs.length;
+        item.logs = null
+    })
     ctx.body = {
         code: 200,
         data: resData,

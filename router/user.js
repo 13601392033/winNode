@@ -50,7 +50,7 @@ router.post("/updateUserById", async (ctx)=>{
     },{
         name: query.name,
         age: query.age,
-        email: query.email,
+        email: query.email, 
         phone: query.phone,
     })
 

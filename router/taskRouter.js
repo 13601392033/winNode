@@ -87,11 +87,12 @@ router.post("/queryTasksByType", async(ctx)=>{
 
 router.post("/refreshTaskList", async (ctx)=>{
     let userId = ctx.session.id;
-    let a = await TaskModel.aggregate([{
-        $limit:6,
-    },
+    let a = await TaskModel.aggregate([
     {
         $sort: {date: -1}
+    },
+    {
+        $limit:6,
     },
     {
         $match:{
