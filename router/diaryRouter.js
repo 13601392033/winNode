@@ -114,6 +114,7 @@ router.post('/editDiaryById', async (ctx)=>{
         await DiaryModel.updateOne({id : data.id}, {
             title : data.title,
             content : data.content,
+            text: data.text
         });
         ctx.body = {
             code : 200,
@@ -151,6 +152,7 @@ router.post('/addDiary', async (ctx)=>{
         title: data.title,
         id: uuid.v1(),
         incId: incId,
+        text: data.text,
         content: data.content,
         userId: userId,
         date: date.getTime(),

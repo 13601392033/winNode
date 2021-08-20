@@ -88,6 +88,29 @@ router.post("/queryHabitList", async (ctx)=>{
                 as: "logs"
             },
         },
+        {
+            $project:{
+                name: "$name",
+                id: "$id",
+                date: "$date",
+                remark: "$remark",
+                logo: "$logo",
+                backColor: "$backColor",
+                logoColor: "$logoColor",
+                logoType: "$logoType",
+                logs:{
+                    $filter:{
+                        input:"$logs",
+                        as : "item",
+                        cond:{
+                            $and:[
+                                {$eq:["$$item.type", 1],},
+                            ]
+                        }
+                    }
+                }
+            }
+        },
     ])
     resData.forEach(item=>{
         item.days = item.logs.length;

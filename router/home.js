@@ -34,7 +34,7 @@ router.post("/init", async (ctx)=>{
     let userId = ctx.session.id;
     let taskList = await TaskModel.aggregate([
         {
-            $sort: {date: -1}
+            $sort: {state: 1, date: -1,}
         },
         {
             $limit:6,

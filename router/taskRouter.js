@@ -16,16 +16,19 @@ router.get('/queryList',(ctx)=>{
 router.post("/queryAllTasks", async(ctx)=>{
     let data = ctx.request.body;
     let userId = ctx.session.id;
-    let one = await queryTasksByType(1, data.pageNo, data.pageSize, {"date":-1}, userId)
-    let two = await queryTasksByType(2, data.pageNo, data.pageSize, {"date":-1}, userId)
-    let three = await queryTasksByType(3, data.pageNo, data.pageSize, {"date":-1}, userId)
+    let sort = {
+        state: 1, date: -1,
+    }
+    let one = await queryTasksByType(1, data.pageNo, data.pageSize, sort, userId)
+    let two = await queryTasksByType(2, data.pageNo, data.pageSize, sort, userId)
+    let three = await queryTasksByType(3, data.pageNo, data.pageSize, sort, userId)
     let all = one.concat(two, three);
     let total = await TaskModel.aggregate([
         {
             $match:{userId :userId}
         },
         {$group : {_id : "$type", total : {$sum : 1}}},
-        {$sort:{type:1}}
+        {$sort:{type:1, state: 1, date: -1,}}
     ])
     ctx.body = {
         code : 200,
@@ -66,7 +69,7 @@ router.post("/queryTasksByType", async(ctx)=>{
             }
         },
         {
-            $sort:{"date":-1}
+            $sort: {state: 1, date: -1,}
         },
         {
             $skip: (data.pageNo -1) * data.pageSize,
@@ -89,7 +92,7 @@ router.post("/refreshTaskList", async (ctx)=>{
     let userId = ctx.session.id;
     let a = await TaskModel.aggregate([
     {
-        $sort: {date: -1}
+        $sort: {state: 1, date: -1,}
     },
     {
         $limit:6,
