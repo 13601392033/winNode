@@ -2,6 +2,7 @@ let Router = require('koa-router')
 let UserModel = require("../db/user.js");
 let router = new Router()
 let multer = require('koa-multer');
+var mongoose = require('mongoose');
 
 router.prefix('/user')
 let name = undefined;
@@ -53,6 +54,34 @@ router.post("/updateUserById", async (ctx)=>{
         email: query.email, 
         phone: query.phone,
     })
+
+    ctx.body = {
+        code : 200,
+        msg : "修改成功！"    
+    }
+})
+
+router.post("/updateUserPasswordById", async (ctx)=>{
+    let query = ctx.request.body;
+    let userId = ctx.session.id;
+    
+    let user = await UserModel.find({
+        _id: mongoose.Types.ObjectId(userId)
+    })
+    if(user[0].password == query.oldPass){
+        await UserModel.updateOne({
+            _id: mongoose.Types.ObjectId(userId)
+        },{
+            password: query.newPass
+        })
+    }else{
+        ctx.body = {
+            code : 300,
+            msg : "密码输入错误！"    
+        }    
+        return  
+    }
+    
 
     ctx.body = {
         code : 200,

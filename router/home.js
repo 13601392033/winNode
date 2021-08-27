@@ -34,28 +34,31 @@ router.post("/init", async (ctx)=>{
     let userId = ctx.session.id;
     let taskList = await TaskModel.aggregate([
         {
-            $sort: {state: 1, date: -1,}
+            $sort: {state: 1, date: -1}
         },
-        {
-            $limit:6,
-        },
+        
         {
             $match:{
                 userId :userId
             }
-    }])
+        },
+        {
+            $limit:6,
+        },
+    ])
     let recordList = await RecordkModel.aggregate([
         {
             $sort: {date: -1}
+        },        
+        {
+            $match:{
+                userId :userId
+            }
         },
         {
             $limit:5,
         },
-        {
-            $match:{
-                userId :userId
-        }
-    }])
+    ])
     let habitList = await HabitModel.aggregate([
         {
             $sort: {date: -1}
@@ -94,7 +97,6 @@ router.post("/init", async (ctx)=>{
                             $and:[
                                 {$eq:["$$item.dateTime", moment(new Date()).format("YYYY-MM-DD")],},
                             ]
-                            
                         }
                     }
                 }

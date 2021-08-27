@@ -95,13 +95,14 @@ router.post("/refreshTaskList", async (ctx)=>{
         $sort: {state: 1, date: -1,}
     },
     {
-        $limit:6,
-    },
-    {
         $match:{
             userId :userId
         }
-    }])
+    },
+    {
+        $limit:6,
+    },
+    ])
     ctx.body = {
         code:200,
         data: a,

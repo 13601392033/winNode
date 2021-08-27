@@ -7,7 +7,7 @@ const secret = '113Bmongodasd12asddasdasxZcxqwedqwdasdASjsdalkfnxcvmas'
 exports.createToken = function(info) {
 	let token = jwt.sign(info, secret, {
         //Token有效时间 单位s
-		expiresIn: 60 * 60 * 12,
+		expiresIn: 60 * 60 * 24 * 7,
 	})
 	return token
 }

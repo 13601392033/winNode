@@ -50,13 +50,13 @@ router.post("/refreshRecordList", async (ctx)=>{
             $sort: {date: -1}
         },
         {
-            $limit:5,
-        },
-        {
             $match:{
                 userId :userId
             }
-        }
+        },
+        {
+            $limit:5,
+        },
     ])
     ctx.body = {
         code:200,
