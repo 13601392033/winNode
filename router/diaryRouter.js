@@ -3,8 +3,33 @@ let Router = require('koa-router')
 let DiaryModel = require("../db/diary");
 const moment = require('moment');
 const router = new Router()
+let multer = require('koa-multer');
 
 router.prefix('/diary')
+
+let name = undefined;
+var storage = multer.diskStorage({
+    //文件保存路径
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    //修改文件名称
+    filename: function (req, file, cb) {
+        var fileFormat = (file.originalname).split(".");
+        name = Date.now() + "." + fileFormat[fileFormat.length - 1];
+        cb(null, name);
+    }   
+})
+//加载配置
+var upload = multer({ storage: storage });
+
+router.post("/upload", upload.single('file'), async (ctx)=>{
+    ctx.body = {
+        code : 200,
+        data:name,
+        msg : "上传成功！"
+    }
+})
 
 router.post("/queryDiaryList", async (ctx)=>{
     let userId = ctx.session.id;
