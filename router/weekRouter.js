@@ -10,6 +10,13 @@ const router = new Router()
 
 router.prefix('/week')
 
+setInterval(() => {
+    let date = new Date();
+    if(date.getDay() == 7 && date.getHours() > 18){ // 周日晚上 六点以后
+            
+    }
+}, (1000 * 60 * 60 * 60));
+
 router.post('/addWeek', async (ctx)=>{
     let data = ctx.request.body;
     let userId = ctx.session.id;
