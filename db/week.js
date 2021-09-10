@@ -5,7 +5,7 @@ let weekSchema = mongoose.Schema({
     endDate: Number, // 结束时间
     summary: String, // 总结
     userId: String,
-    date: Number,
+    createDate: Number,
 })
 
 let WeekModel = mongoose.model("week", weekSchema, "week");
