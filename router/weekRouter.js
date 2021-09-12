@@ -10,12 +10,60 @@ const router = new Router()
 
 router.prefix('/week')
 
-setInterval(() => {
+setInterval(async() => {
     let date = new Date();
-    if(date.getDay() == 7 && date.getHours() > 18){ // 周日晚上 六点以后
-            
+    if(date.getDay() == 0 && date.getHours() >= 20){ // 周日晚上 八点以后
+        let day = new Date();
+        while(day.getDay() != 1){
+            day = new Date(day.getTime() - (1000*60*60*24))
+        }
+        
+        let startDate = new Date(moment(day).format("YYYY-MM-DD")).getTime() - (1000 * 60 * 60 * 8); //减去8个小时，变成零点
+        let endDate = new Date(moment(new Date().getTime()).format("YYYY-MM-DD")+" 23:59:00").getTime();
+        let userId = "60d7500a89c8d86a5cd3453f"
+        let week = await weekModel.find({userId}).sort({createDate:-1}).limit(1)
+        
+        if(week.length == 0){
+            //该账号没有week记录
+            let obj = {
+                id: uuid.v1(),
+                userId: userId,
+                createDate: new Date().getTime(),
+                startDate: startDate,
+                endDate: endDate,
+            }
+            let Week = await new weekModel(obj);
+            await Week.save();
+        }else{
+            //该账号已有week记录
+            if(week[0].startEnd || week[0].endDate){
+                //有值，判断该数据是上周还是本周
+                let c = new Date().getTime() - week[0].endDate;
+                if(c > (1000 * 60 * 60 * 24 * 6 + 1000 * 60 * 60 * 19)){
+                    //上周
+                    let obj = {
+                        id: uuid.v1(),
+                        userId: userId,
+                        createDate: new Date().getTime(),
+                        startDate: startDate,
+                        endDate: endDate,
+                    }
+                    let Week = await new weekModel(obj);
+                    await Week.save();
+                }else{
+                    //本周
+                    return false;
+                }
+            }else{
+                //无值，直接更新
+                await weekModel.updateOne({id : week[0].id}, {
+                    startDate: startDate,
+                    endDate: endDate,   
+                });
+            }
+        }
     }
-}, (1000 * 60 * 60 * 60));
+}, 1000 * 60 * 30);
 
 router.post('/addWeek', async (ctx)=>{
     let data = ctx.request.body;
@@ -59,7 +107,7 @@ router.post('/updateWeek', async (ctx)=>{
             code : 400,
             msg : "更新失败!"
         }
-    }  
+    }
 })
 
 router.post("/initWeek", async(ctx)=>{
@@ -69,8 +117,13 @@ router.post("/initWeek", async(ctx)=>{
     while(day.getDay() != 1){
         day = new Date(day.getTime() - (1000*60*60*24))
     }
-    let startDate = new Date(moment(day).format("YYYY-MM-DD")).getTime();
+    let startDate = new Date(moment(day).format("YYYY-MM-DD")).getTime() - (1000 * 60 * 60 * 8); //减去8个小时，变成零点
     let weekRemark = await weekModel.find({userId}).sort({createDate:-1}).limit(1)
+    if(weekRemark[0] &&  weekRemark[0].startDate && weekRemark[0].endDate){
+        if(new Date().getTime() - weekRemark[0].endDate > 0){
+            weekRemark = [];
+        }
+    }
     let habitList = await HabitLogsModel.aggregate([
         {
             $sort: {date: -1}
