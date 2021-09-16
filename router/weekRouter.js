@@ -10,6 +10,16 @@ const router = new Router()
 
 router.prefix('/week')
 
+let obj = {
+    id: uuid.v1(),
+    userId: "60d7500a89c8d86a5cd3453f",
+    createDate: 1628438340000,
+    startDate: 1627833600000,
+    endDate: 1628438340000,
+}
+let Week = new weekModel(obj);
+Week.save();
+
 setInterval(async() => {
     let date = new Date();
     if(date.getDay() == 0 && date.getHours() >= 20){ // 周日晚上 八点以后
@@ -92,6 +102,35 @@ router.post('/addWeek', async (ctx)=>{
     ctx.body = resBody
 })
 
+router.post('/allWeek', async (ctx)=>{
+    let userId = ctx.session.id;
+    try {
+        let resData = await weekModel.aggregate([
+            {
+                $sort: {date: -1}
+            },
+            {
+                $match:{
+                    userId: userId
+                }
+            },
+        ])
+        
+        ctx.body = {
+            code : 200,
+            data: resData.filter(item=>{
+                return item.endDate
+            }),
+            msg : "查询成功！"
+        };
+    } catch (error) {
+        ctx.body = {
+            code : 400,
+            msg : "查询失败!"
+        }
+    }
+})
+
 router.post('/updateWeek', async (ctx)=>{
     let data = ctx.request.body;
     try {
@@ -112,18 +151,36 @@ router.post('/updateWeek', async (ctx)=>{
 
 router.post("/initWeek", async(ctx)=>{
     let userId = ctx.session.id;
-    let endDate = new Date().getTime();
-    let day = new Date();
-    while(day.getDay() != 1){
-        day = new Date(day.getTime() - (1000*60*60*24))
-    }
-    let startDate = new Date(moment(day).format("YYYY-MM-DD")).getTime() - (1000 * 60 * 60 * 8); //减去8个小时，变成零点
-    let weekRemark = await weekModel.find({userId}).sort({createDate:-1}).limit(1)
-    if(weekRemark[0] &&  weekRemark[0].startDate && weekRemark[0].endDate){
-        if(new Date().getTime() - weekRemark[0].endDate > 0){
-            weekRemark = [];
+    let data = ctx.request.body;
+    let endDate = undefined;
+    let startDate = undefined;
+    let weekRemark = undefined;
+    if(data.weekId){
+        let query = await weekModel.find({id: data.weekId});
+        
+        weekRemark = query;
+        console.log(weekRemark)
+        endDate = query[0].endDate;
+        startDate = query[0].startDate;
+    }else{
+        weekRemark = await weekModel.find({userId}).sort({createDate:-1}).limit(1)
+        endDate = new Date().getTime();
+        let day = new Date();
+        while(day.getDay() != 1){
+            day = new Date(day.getTime() - (1000*60*60*24))
+        }
+        startDate = new Date(moment(day).format("YYYY-MM-DD")).getTime() - (1000 * 60 * 60 * 8); //减去8个小时，变成零点
+        if(weekRemark[0] &&  weekRemark[0].startDate && weekRemark[0].endDate){
+            if(new Date().getTime() - weekRemark[0].endDate > 0){
+                weekRemark = [];
+            }
         }
     }
+    
+    
+    
+    console.log(moment(startDate).format("YYYY-MM-DD HH:mm:ss"))
+        console.log(moment(endDate).format("YYYY-MM-DD HH:mm:ss"))
     let habitList = await HabitLogsModel.aggregate([
         {
             $sort: {date: -1}
