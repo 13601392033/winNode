@@ -10,16 +10,6 @@ const router = new Router()
 
 router.prefix('/week')
 
-let obj = {
-    id: uuid.v1(),
-    userId: "60d7500a89c8d86a5cd3453f",
-    createDate: 1628438340000,
-    startDate: 1627833600000,
-    endDate: 1628438340000,
-}
-let Week = new weekModel(obj);
-Week.save();
-
 setInterval(async() => {
     let date = new Date();
     if(date.getDay() == 0 && date.getHours() >= 20){ // 周日晚上 八点以后
@@ -107,7 +97,7 @@ router.post('/allWeek', async (ctx)=>{
     try {
         let resData = await weekModel.aggregate([
             {
-                $sort: {date: -1}
+                $sort: {createDate: -1}
             },
             {
                 $match:{
