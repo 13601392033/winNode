@@ -57,6 +57,8 @@ router.post("/queryHabitById", async(ctx)=>{
     ]);
     let bestLongDays = getBestDays(resData[0].logs);
     let curBestDays = getCurBestDays(resData[0].logs);
+    resData[0].lastDate = resData[0].logs[resData[0].logs.length-1].dateTime;
+    resData[0].allDays = resData[0].logs.length
     ctx.body = {
         code: 200,
         data: resData,
