@@ -5,64 +5,67 @@ let TaskModel = require("../db/task");
 let RecordModel = require("../db/record");
 let DiaryModel = require("../db/diary");
 let weekModel = require("../db/week");
+let UserModel = require("../db/user.js");
 let uuid = require('node-uuid');
 const router = new Router()
 
 router.prefix('/week')
-
 setInterval(async() => {
-    let date = new Date();
-    if(date.getDay() == 0 && date.getHours() >= 20){ // 周日晚上 八点以后
-        let day = new Date();
-        while(day.getDay() != 1){
-            day = new Date(day.getTime() - (1000*60*60*24))
-        }
-        
-        let startDate = new Date(moment(day).format("YYYY-MM-DD")).getTime() - (1000 * 60 * 60 * 8); //减去8个小时，变成零点
-        let endDate = new Date(moment(new Date().getTime()).format("YYYY-MM-DD")+" 23:59:00").getTime();
-        let userId = "60d7500a89c8d86a5cd3453f"
-        let week = await weekModel.find({userId}).sort({createDate:-1}).limit(1)
-        
-        if(week.length == 0){
-            //该账号没有week记录
-            let obj = {
-                id: uuid.v1(),
-                userId: userId,
-                createDate: new Date().getTime(),
-                startDate: startDate,
-                endDate: endDate,
+    let userIds = await UserModel.find({});
+    userIds.forEach(async ({_id: userId}) => {
+        let date = new Date();
+        if(date.getDay() == 0 && date.getHours() >= 20){ // 周日晚上 八点以后
+            let day = new Date();
+            while(day.getDay() != 1){
+                day = new Date(day.getTime() - (1000*60*60*24))
             }
-            let Week = await new weekModel(obj);
-            await Week.save();
-        }else{
-            //该账号已有week记录
-            if(week[0].startEnd || week[0].endDate){
-                //有值，判断该数据是上周还是本周
-                let c = new Date().getTime() - week[0].endDate;
-                if(c > (1000 * 60 * 60 * 24 * 6 + 1000 * 60 * 60 * 19)){
-                    //上周
-                    let obj = {
-                        id: uuid.v1(),
-                        userId: userId,
-                        createDate: new Date().getTime(),
-                        startDate: startDate,
-                        endDate: endDate,
-                    }
-                    let Week = await new weekModel(obj);
-                    await Week.save();
-                }else{
-                    //本周
-                    return false;
-                }
-            }else{
-                //无值，直接更新
-                await weekModel.updateOne({id : week[0].id}, {
+            
+            let startDate = new Date(moment(day).format("YYYY-MM-DD")).getTime() - (1000 * 60 * 60 * 8); //减去8个小时，变成零点
+            let endDate = new Date(moment(new Date().getTime()).format("YYYY-MM-DD")+" 23:59:00").getTime();
+            // let userId = "60d7500a89c8d86a5cd3453f"
+            let week = await weekModel.find({userId}).sort({createDate:-1}).limit(1)
+            
+            if(week.length == 0){
+                //该账号没有week记录
+                let obj = {
+                    id: uuid.v1(),
+                    userId: userId,
+                    createDate: new Date().getTime(),
                     startDate: startDate,
-                    endDate: endDate,   
-                });
+                    endDate: endDate,
+                }
+                let Week = await new weekModel(obj);
+                await Week.save();
+            }else{
+                //该账号已有week记录
+                if(week[0].startEnd || week[0].endDate){
+                    //有值，判断该数据是上周还是本周
+                    let c = new Date().getTime() - week[0].endDate;
+                    if(c > (1000 * 60 * 60 * 24 * 6 + 1000 * 60 * 60 * 19)){
+                        //上周
+                        let obj = {
+                            id: uuid.v1(),
+                            userId: userId,
+                            createDate: new Date().getTime(),
+                            startDate: startDate,
+                            endDate: endDate,
+                        }
+                        let Week = await new weekModel(obj);
+                        await Week.save();
+                    }else{
+                        //本周
+                        return false;
+                    }
+                }else{
+                    //无值，直接更新
+                    await weekModel.updateOne({id : week[0].id}, {
+                        startDate: startDate,
+                        endDate: endDate,   
+                    });
+                }
             }
         }
-    }
+    })
 }, 1000 * 60 * 30);
 
 router.post('/addWeek', async (ctx)=>{
